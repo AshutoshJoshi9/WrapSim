@@ -17,55 +17,12 @@ class VerilogScanDFT:
         self.scan_chain = []
         self.module_io = {}  # Updated: now includes signal names
         self.ast = None
+        self.wbc_cells = []
 
     def parse_file(self):
         self.ast, _ = parse([self.filepath])
         print("Parsed netlist file successfully.")
     
-    # def extract_design_info(self):
-    #     def visit(node):
-    #         if isinstance(node, vast.ModuleDef):
-    #             self.modules.append(node.name)
-    #             input_names = []
-    #             output_names = []
-
-    #             for item in node.children():
-    #                 if isinstance(item, vast.Decl):
-    #                     for decl in item.list:
-    #                         if isinstance(decl, vast.Input):
-    #                             if isinstance(decl.name, str):
-    #                                 input_names.append(decl.name)
-    #                             else:
-    #                                 input_names.append(decl.name.name)
-    #                         elif isinstance(decl, vast.Output):
-    #                             if isinstance(decl.name, str):
-    #                                 output_names.append(decl.name)
-    #                             else:
-    #                                 output_names.append(decl.name.name)
-
-    #             self.module_io[node.name] = {
-    #                 'input_count': len(input_names),
-    #                 'output_count': len(output_names),
-    #                 'input_names': input_names,
-    #                 'output_names': output_names
-    #             }
-
-    #         elif isinstance(node, vast.InstanceList):
-    #             for inst in node.instances:
-    #                 cell = node.module.lower()
-    #                 name = inst.name
-
-    #                 if "sdff" in cell:
-    #                     self.scan_flops.append((cell, name))
-    #                 elif "dff" in cell:
-    #                     self.flipflops.append((cell, name))
-    #                 elif any(gate in cell for gate in ['aoi', 'oai', 'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'clkinv']):
-    #                     self.gates.append((cell, name))
-
-    #         for c in node.children():
-    #             visit(c)
-
-    #     visit(self.ast)
 
     def extract_design_info(self):
         def visit(node):
@@ -123,6 +80,32 @@ class VerilogScanDFT:
                 visit(c)
 
         visit(self.ast)
+        # Add Wrapper Boundary Cells for I/Os
+        excluded_inputs = {'clk', 'reset', 'en'}
+        wbc_inputs = ['CFI', 'WINT', 'WEXT', 'WRCK', 'DFT_sdi']
+        wbc_outputs = ['CFO', 'DFT_sdo']
+
+        for mod, io in self.module_io.items():
+            for name in io['input_names']:
+                if name not in excluded_inputs:
+                    self.wbc_cells.append({
+                        'cell_type': 'WBC',
+                        'instance': f'WBC_{name}',
+                        'direction': 'input',
+                        'signal': name,
+                        'inputs': wbc_inputs,
+                        'outputs': wbc_outputs
+                    })
+
+            for name in io['output_names']:
+                self.wbc_cells.append({
+                    'cell_type': 'WBC',
+                    'instance': f'WBC_{name}',
+                    'direction': 'output',
+                    'signal': name,
+                    'inputs': wbc_inputs,
+                    'outputs': wbc_outputs
+                })
 
 
 
@@ -158,6 +141,16 @@ class VerilogScanDFT:
             print(f"\nModule: {mod}")
             print(f"Inputs ({io['input_count']}): {', '.join(io['input_names']) or 'None'}")
             print(f"Outputs ({io['output_count']}): {', '.join(io['output_names']) or 'None'}")
+        print("\n[ Wrapper Boundary Cells (WBCs) ]")
+        print(tabulate(
+            [
+                (w['instance'], w['direction'], w['signal'],
+                ', '.join(w['inputs']), ', '.join(w['outputs']))
+                for w in self.wbc_cells
+            ],
+            headers=["Instance", "Direction", "Signal", "Inputs", "Outputs"]
+        ) or "None")
+
 
 
     def create_schematic(self, output_file="schematic"):
@@ -183,6 +176,22 @@ class VerilogScanDFT:
         # Optionally, add logic connections if you have them
         # (You'd need to parse net connections from the netlist for this)
         
+        
+        # Add WBCs to schematic
+        for w in self.wbc_cells:
+            input_ports = ', '.join(w['inputs'])
+            output_ports = ', '.join(w['outputs'])
+            label = (
+                f"{w['cell_type']}\n{w['instance']}\nSignal: {w['signal']}\n"
+                f"IN: {input_ports}\nOUT: {output_ports}"
+            )
+            dot.node(
+                w['instance'],
+                label,
+                shape="octagon",
+                style="filled",
+                color="yellow"
+            )
         dot.render(output_file, view=True, format="pdf")  # or format="png"
    
     def run(self):
