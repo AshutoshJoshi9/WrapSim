@@ -59,8 +59,8 @@ module OAI2BB2XL (
     input  B1,
     output Y
 );
-  // Y = ~((~A0N & ~A1N) | (B0 & B1))
-  assign Y = ~((~A0N & ~A1N) | (B0 & B1));
+  // Y = ~((~(A0N & A1N)) & (B0 & B1))
+  assign Y = ~((~(A0N & A1N)) & (B0 | B1));
 endmodule
 
 module AOI2BB1XL (
@@ -69,8 +69,8 @@ module AOI2BB1XL (
     input  B0,
     output Y
 );
-  // Y = ~(((~A0N) & (~A1N)) & B0)
-  assign Y = ~(((~A0N) & (~A1N)) & B0);
+  // Y = ~((~(A0N | A1N)) | B0)
+  assign Y = ~((~(A0N | A1N)) | B0);
 endmodule
 
 module CLKINVX1 (
@@ -88,4 +88,12 @@ module AOI21XL (
     output Y
 );
     assign Y = ~(B0 | (A0 & A1));
+endmodule
+
+module XOR2XL (
+    input A,
+    input B,
+    output Y
+);
+    assign Y = A ^ B;
 endmodule

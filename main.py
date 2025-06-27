@@ -33,18 +33,24 @@ class VerilogScanDFT:
                 self.modules.append(node.name)
                 input_names = []
                 output_names = []
+                print(f"Processing module: {node.name}")
 
                 for item in node.children():
                     if isinstance(item, vast.Decl):
+                        print(f"  Found Decl: {type(item)}")
                         for decl in item.list:
+                            print(f"    Declaration: {type(decl)} - {decl}")
                             signal_base = decl.name if isinstance(decl.name, str) else decl.name.name
                             width = decl.width
+                            print(f"      Signal: {signal_base}, Width: {width}")
 
                             if width is None:
                                 if isinstance(decl, vast.Input):
                                     input_names.append(signal_base)
+                                    print(f"      Added input: {signal_base}")
                                 elif isinstance(decl, vast.Output):
                                     output_names.append(signal_base)
+                                    print(f"      Added output: {signal_base}")
                             else:
                                 msb = int(width.msb.value)
                                 lsb = int(width.lsb.value)
@@ -52,8 +58,10 @@ class VerilogScanDFT:
                                 expanded = [f"{signal_base}{i}" for i in bit_range]
                                 if isinstance(decl, vast.Input):
                                     input_names.extend(expanded)
+                                    print(f"      Added input bus: {expanded}")
                                 elif isinstance(decl, vast.Output):
                                     output_names.extend(expanded)
+                                    print(f"      Added output bus: {expanded}")
 
                 self.module_io[node.name] = {
                     'input_count': len(input_names),
@@ -61,6 +69,7 @@ class VerilogScanDFT:
                     'input_names': input_names,
                     'output_names': output_names
                 }
+                print(f"  Module {node.name} I/O: {len(input_names)} inputs, {len(output_names)} outputs")
 
             elif isinstance(node, vast.InstanceList):
                 instantiated_modules.add(node.module)
@@ -128,10 +137,10 @@ class VerilogScanDFT:
             key=lambda x: x['instance']
         )
 
-        # Combine full scan chain: inputs → internal scan FFs → outputs
+        # Combine full scan chain: inputs → all scan FFs (SDFFs and DFFs) → outputs
         full_chain = input_wbcs + [
             {'cell_type': cell, 'instance': name}
-            for cell, name in self.scan_flops
+            for cell, name in (self.scan_flops + self.flipflops)
         ] + output_wbcs
 
         self.scan_chain = []
@@ -178,24 +187,26 @@ class VerilogScanDFT:
         dot = Digraph(comment="Netlist Schematic")
 
         # Flip-flop port definitions
-        ff_inputs = ['RN', 'CK', 'D', 'SI', 'SE']
-        ff_outputs = ['Q', 'QN']
+        ff_inputs_sdff = ['RN', 'CK', 'D', 'SI', 'SE']
+        ff_outputs_sdff = ['Q', 'QN']
+        ff_inputs_dff = ['RN', 'CK', 'D']
+        ff_outputs_dff = ['Q', 'QN']
 
-        # Add scan flip-flops
+        # Add scan flip-flops (SDFF)
         for cell, name in self.scan_flops:
             label = (
                 f"{cell}\n{name}\n"
-                f"IN: {', '.join(ff_inputs)}\n"
-                f"OUT: {', '.join(ff_outputs)}"
+                f"IN: {', '.join(ff_inputs_sdff)}\n"
+                f"OUT: {', '.join(ff_outputs_sdff)}"
             )
             dot.node(name, label, shape="box", style="filled", color="lightblue")
 
-        # Add regular flip-flops
+        # Add regular flip-flops (DFF)
         for cell, name in self.flipflops:
             label = (
                 f"{cell}\n{name}\n"
-                f"IN: {', '.join(ff_inputs)}\n"
-                f"OUT: {', '.join(ff_outputs)}"
+                f"IN: {', '.join(ff_inputs_dff)}\n"
+                f"OUT: {', '.join(ff_outputs_dff)}"
             )
             dot.node(name, label, shape="box", style="filled", color="lightgrey")
 
@@ -215,9 +226,18 @@ class VerilogScanDFT:
 
         # Draw extended scan chain path
         for idx in range(len(self.scan_chain) - 1):
-            from_name = self.scan_chain[idx]['instance']
-            to_name = self.scan_chain[idx + 1]['instance']
-            dot.edge(from_name, to_name, label="scan")
+            from_cell = self.scan_chain[idx]
+            to_cell = self.scan_chain[idx + 1]
+            # For DFFRX1, connect Q to D; for SDFF, connect SO to SI
+            if from_cell['cell_type'].lower().startswith('dff'):
+                from_port = 'Q'
+            else:
+                from_port = 'SO'
+            if to_cell['cell_type'].lower().startswith('dff'):
+                to_port = 'D'
+            else:
+                to_port = 'SI'
+            dot.edge(from_cell['instance'], to_cell['instance'], label=f"{from_port}->{to_port}")
 
         dot.render(output_file, view=True, format="pdf")
 

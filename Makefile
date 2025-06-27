@@ -8,7 +8,7 @@ TOPLEVEL      = tb
 # Language of the DUT
 TOPLEVEL_LANG = verilog    
 # Verilog sources: your DUT + the tb wrapper
-VERILOG_SOURCES = net.v lib_cells.v testbench.v
+VERILOG_SOURCES = simple_counter.v lib_cells.v testbench.v
 # Python test module (under tests/test_scan.py, no “.py”)
 MODULE        = tests.test_scan
 

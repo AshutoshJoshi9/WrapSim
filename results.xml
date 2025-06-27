@@ -1,6 +1,6 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1750850769" />
-    <testcase name="test_counter_functional" classname="tests.test_scan" file="/home/achuut/Desktop/WrapSim/tests/test_scan.py" lineno="7" time="0.002026796340942383" sim_time_ns="190.001" ratio_time="93744.4952716151" />
+    <property name="random_seed" value="1751020717" />
+    <testcase name="test_counter_functional" classname="tests.test_scan" file="/home/achuut/Desktop/WrapSim/tests/test_scan.py" lineno="7" time="0.0022559165954589844" sim_time_ns="190.001" ratio_time="84223.41516634962" />
   </testsuite>
 </testsuites>
