@@ -98,6 +98,8 @@ async def test_extest_multiple_vectors(dut):
         "00111100",  # random
     ]
     
+
+    
     for test_vector in test_vectors:
         dut._log.info(f"\n=== Testing EXTEST vector: {test_vector} ===")
         
