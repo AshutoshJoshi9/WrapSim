@@ -18,25 +18,26 @@ async def test_counter_functional(dut):
     await RisingEdge(dut.clk)
     dut.reset.value = 0
     await RisingEdge(dut.clk)
+    
+
+    test_vector = "0100"
+    # 1) SHIFT-IN (parallel load via the 4-bit `in` port)
+    dut.en.value = 1
+    in_bus = getattr(dut, 'in')
+    in_bus.value = int(test_vector, 2)
     await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
-    # Test: apply a sequence of values to 'in' and check 'out'
-    # We'll use the counter as a loadable register: in[3:0] is loaded when en=1, otherwise it should count
-    # But your netlist seems to use 'in' as scan input when en=1, so for functional mode, en=0
 
 
+    # 2) CAPTURE (two functional cycles with en=0)
+    dut.en.value = 0
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+
+    # 3) SHIFT-OUT (read back via the 4-bit `out` port)
+    dut.en.value = 1
+    await RisingEdge(dut.clk)
+
+    out_bus = dut.out
+    sig_int = int(out_bus.value)
+    captured = format(sig_int, f"0{N}b")
+    dut._log.info(f"Captured signature: {captured}")
