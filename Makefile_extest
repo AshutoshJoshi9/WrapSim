@@ -1,0 +1,36 @@
+# Makefile for cocotb-based extest scan test
+
+# --------------------------------------------------------------------
+# 1) Tell cocotb how to find your design and test
+# --------------------------------------------------------------------
+# Top‐level Verilog module (must match your testbench instantiation)
+TOPLEVEL      = tb_extest   
+# Language of the DUT
+TOPLEVEL_LANG = verilog    
+# Verilog sources: your DUT + the tb wrapper + extest wrapper
+VERILOG_SOURCES = simple_counter.v lib_cells.v testbench_extest.v extest_wrapper.v
+# Python test module (under tests/test_extest.py, no ".py")
+MODULE        = tests.test_extest
+
+# --------------------------------------------------------------------
+# 2) Include the cocotb-provided build rules
+# --------------------------------------------------------------------
+# cocotb-config should be on your PATH (comes with `pip install cocotb`)
+include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# --------------------------------------------------------------------
+# 3) Additional targets for extest testing
+# --------------------------------------------------------------------
+.PHONY: extest-test extest-clean
+
+extest-test: sim
+	@echo "Extest mode simulation completed"
+	@echo "Check wave_extest.vcd for waveform"
+
+extest-clean:
+	rm -rf __pycache__
+	rm -rf sim_build
+	rm -rf results.xml
+	rm -rf wave_extest.vcd
+	rm -rf dump.vcd
+	rm -rf test.log 

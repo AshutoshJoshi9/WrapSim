@@ -19,8 +19,8 @@ async def test_counter_functional(dut):
     dut.reset.value = 0
     await RisingEdge(dut.clk)
     
-
-    test_vector = "0100"
+###------------------ INTEST MODE ------------------------------------
+    test_vector = "0010"
     # 1) SHIFT-IN (parallel load via the 4-bit `in` port)
     dut.en.value = 1
     in_bus = getattr(dut, 'in')
@@ -41,3 +41,6 @@ async def test_counter_functional(dut):
     sig_int = int(out_bus.value)
     captured = format(sig_int, f"0{N}b")
     dut._log.info(f"Captured signature: {captured}")
+
+
+###------------------- BYPASS MODE ------------------------------------

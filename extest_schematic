@@ -1,0 +1,149 @@
+// Extest Mode Schematic
+digraph {
+	rankdir=LR
+	subgraph cluster_left {
+		color=lightgrey label="Left Core (No WBCs)" style=filled
+		rank=same
+		left_count_reg_0 [label="dffrx1
+left_count_reg_0" color=lightgrey shape=box style=filled]
+		left_count_reg_3 [label="sdffrx1
+left_count_reg_3" color=lightgreen shape=box style=filled]
+		left_count_reg_2 [label="sdffrx1
+left_count_reg_2" color=lightgreen shape=box style=filled]
+		left_count_reg_1 [label="sdffrx1
+left_count_reg_1" color=lightgreen shape=box style=filled]
+		left_g0 [label="clkinvx1
+left_g0" color=orange shape=ellipse]
+		left_g1 [label="clkinvx1
+left_g1" color=orange shape=ellipse]
+		left_g2 [label="xor2xl
+left_g2" color=orange shape=ellipse]
+		left_g3 [label="and2xl
+left_g3" color=orange shape=ellipse]
+		left_g4 [label="xor2xl
+left_g4" color=orange shape=ellipse]
+		left_g5 [label="and2xl
+left_g5" color=orange shape=ellipse]
+		left_g6 [label="and2xl
+left_g6" color=orange shape=ellipse]
+		left_g7 [label="xor2xl
+left_g7" color=orange shape=ellipse]
+	}
+	subgraph cluster_main {
+		color=lightblue label="Main Core (with WBCs)" style=filled
+		rank=same
+		count_reg_0 [label="dffrx1
+count_reg_0" color=lightblue shape=box style=filled]
+		count_reg_3 [label="sdffrx1
+count_reg_3" color=lightcyan shape=box style=filled]
+		count_reg_2 [label="sdffrx1
+count_reg_2" color=lightcyan shape=box style=filled]
+		count_reg_1 [label="sdffrx1
+count_reg_1" color=lightcyan shape=box style=filled]
+		g0 [label="clkinvx1
+g0" color=orange shape=ellipse]
+		g1 [label="clkinvx1
+g1" color=orange shape=ellipse]
+		g2 [label="xor2xl
+g2" color=orange shape=ellipse]
+		g3 [label="and2xl
+g3" color=orange shape=ellipse]
+		g4 [label="xor2xl
+g4" color=orange shape=ellipse]
+		g5 [label="and2xl
+g5" color=orange shape=ellipse]
+		g6 [label="and2xl
+g6" color=orange shape=ellipse]
+		g7 [label="xor2xl
+g7" color=orange shape=ellipse]
+		WBC_in0 [label="WBC
+WBC_in0
+Signal: in0
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_in1 [label="WBC
+WBC_in1
+Signal: in1
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_in2 [label="WBC
+WBC_in2
+Signal: in2
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_in3 [label="WBC
+WBC_in3
+Signal: in3
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_out0 [label="WBC
+WBC_out0
+Signal: out0
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_out1 [label="WBC
+WBC_out1
+Signal: out1
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_out2 [label="WBC
+WBC_out2
+Signal: out2
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+		WBC_out3 [label="WBC
+WBC_out3
+Signal: out3
+IN: CFI, WINT, WEXT, WRCK, DFT_sdi
+OUT: CFO, DFT_sdo" color=yellow shape=octagon style=filled]
+	}
+	subgraph cluster_right {
+		color=lightgrey label="Right Core (No WBCs)" style=filled
+		rank=same
+		right_count_reg_0 [label="dffrx1
+right_count_reg_0" color=lightgrey shape=box style=filled]
+		right_count_reg_3 [label="sdffrx1
+right_count_reg_3" color=lightgreen shape=box style=filled]
+		right_count_reg_2 [label="sdffrx1
+right_count_reg_2" color=lightgreen shape=box style=filled]
+		right_count_reg_1 [label="sdffrx1
+right_count_reg_1" color=lightgreen shape=box style=filled]
+		right_g0 [label="clkinvx1
+right_g0" color=orange shape=ellipse]
+		right_g1 [label="clkinvx1
+right_g1" color=orange shape=ellipse]
+		right_g2 [label="xor2xl
+right_g2" color=orange shape=ellipse]
+		right_g3 [label="and2xl
+right_g3" color=orange shape=ellipse]
+		right_g4 [label="xor2xl
+right_g4" color=orange shape=ellipse]
+		right_g5 [label="and2xl
+right_g5" color=orange shape=ellipse]
+		right_g6 [label="and2xl
+right_g6" color=orange shape=ellipse]
+		right_g7 [label="xor2xl
+right_g7" color=orange shape=ellipse]
+	}
+	WBC_in0 -> WBC_in1 [label="SO->SI" color=red penwidth=2]
+	WBC_in1 -> WBC_in2 [label="SO->SI" color=red penwidth=2]
+	WBC_in2 -> WBC_in3 [label="SO->SI" color=red penwidth=2]
+	WBC_in3 -> WBC_out0 [label="SO->SI" color=red penwidth=2]
+	WBC_out0 -> WBC_out1 [label="SO->SI" color=red penwidth=2]
+	WBC_out1 -> WBC_out2 [label="SO->SI" color=red penwidth=2]
+	WBC_out2 -> WBC_out3 [label="SO->SI" color=red penwidth=2]
+	extest_scan_in [label="Extest
+Scan In" color=red shape=diamond]
+	extest_scan_out [label="Extest
+Scan Out" color=red shape=diamond]
+	extest_scan_in -> WBC_in0 [color=red penwidth=2]
+	WBC_out3 -> extest_scan_out [color=red penwidth=2]
+	WBC_in0 -> left_count_reg_0 [label="WBC_in[0]->left_count_reg[0]" color=blue style=dashed]
+	WBC_in1 -> left_count_reg_1 [label="WBC_in[1]->left_count_reg[1]" color=blue style=dashed]
+	WBC_in2 -> left_count_reg_2 [label="WBC_in[2]->left_count_reg[2]" color=blue style=dashed]
+	WBC_in3 -> left_count_reg_3 [label="WBC_in[3]->left_count_reg[3]" color=blue style=dashed]
+	WBC_out0 -> right_count_reg_0 [label="WBC_out[0]->right_count_reg[0]" color=green style=dashed]
+	WBC_out1 -> right_count_reg_1 [label="WBC_out[1]->right_count_reg[1]" color=green style=dashed]
+	WBC_out2 -> right_count_reg_2 [label="WBC_out[2]->right_count_reg[2]" color=green style=dashed]
+	WBC_out3 -> right_count_reg_3 [label="WBC_out[3]->right_count_reg[3]" color=green style=dashed]
+}

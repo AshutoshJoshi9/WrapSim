@@ -249,5 +249,5 @@ class VerilogScanDFT:
         self.create_schematic()
 
 if __name__ == "__main__":
-    analyzer = VerilogScanDFT("./net.v")
+    analyzer = VerilogScanDFT("./simple_counter.v")
     analyzer.run()

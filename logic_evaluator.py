@@ -200,6 +200,8 @@ class LogicEvaluator:
                         # a combinational/library cell
                         self.gate_types [inst_name] = mtype
                         self.gate_ports [inst_name] = ports
+                        # Debug: Print port mappings for gates
+                        print(f"Gate {inst_name} ({mtype}) ports: {ports}")
                         # classify ports: y,z,zn are outputs, rest are inputs
                         for pname, net in ports.items():
                             if pname in ('y','z','zn'):
@@ -220,6 +222,10 @@ class LogicEvaluator:
             for c in node.children():
                 visit(c)
         visit(self.ast)
+        # Print Q output mapping for debugging
+        print("[build_model] Q output mapping (flop instance -> Q net):")
+        for inst, qnet in self.q_outputs.items():
+            print(f"  {inst} -> {qnet}")
 
     def debug_model(self):
         print("=== Flop .D nets ===")
@@ -348,22 +354,29 @@ class LogicEvaluator:
         Returns new_q: dict of {inst_name: Q}
         """
         new_q = {}
+        print("[simulate_flops] Flop update:")
         for inst in current_q:
-            # Default: not in reset
             reset_val = 1 if reset_map is None else reset_map.get(inst, 1)
             if reset_val == 0:
+                print(f"  {inst}: RESET asserted, Q=0")
                 new_q[inst] = 0
                 continue
             if inst in self.sdff_cells:
                 se = se_map.get(inst, 0) if se_map else 0
+                si = si_map.get(inst, 0) if si_map else 0
+                d_net = self.d_inputs[inst]
+                d_val = int(self.signal_values.get(d_net, 0))
+                print(f"  {inst} (SDFF): SE={se}, SI={si}, D={d_val}, Q_prev={current_q[inst]}")
                 if se:
-                    new_q[inst] = si_map.get(inst, 0) if si_map else 0
+                    new_q[inst] = si
                 else:
-                    d_net = self.d_inputs[inst]
-                    new_q[inst] = int(self.signal_values.get(d_net, 0))
+                    new_q[inst] = d_val
             elif inst in self.dff_cells:
                 d_net = self.d_inputs[inst]
-                new_q[inst] = int(self.signal_values.get(d_net, 0))
+                d_val = int(self.signal_values.get(d_net, 0))
+                print(f"  {inst} (DFF): D={d_val}, Q_prev={current_q[inst]}")
+                new_q[inst] = d_val
+        print(f"  New Qs: {new_q}")
         return new_q
 
     def capture(self, initial_q: dict, cycles: int = 2, se_map=None, si_map=None, reset_map=None) -> dict:
@@ -377,7 +390,7 @@ class LogicEvaluator:
         """
         current_q = initial_q.copy()
         for cycle in range(cycles):
-            # 1. Set Q outputs to nets
+            print(f"\n[Capture cycle {cycle+1}] Q values: {current_q}")
             primaries = {
                 self.q_outputs[inst]: bit
                 for inst, bit in current_q.items()
@@ -385,11 +398,10 @@ class LogicEvaluator:
             }
             self.signal_values.clear()
             self.set_primary_inputs(primaries)
-            # 2. Propagate combinational logic until stable
             self.propagate()
-            # 3. Simulate flops (update Qs for next cycle)
+            # Print D inputs for all flops
+            d_inputs_vals = {inst: self.signal_values.get(self.d_inputs[inst], 0) for inst in current_q}
+            print(f"[Capture cycle {cycle+1}] D inputs: {d_inputs_vals}")
             current_q = self.simulate_flops(current_q, se_map, si_map, reset_map)
-            # 4. Debug output
-            print(f"[Capture cycle {cycle+1}] Q values: {current_q}")
-            print(f"[Capture cycle {cycle+1}] D inputs: {{inst: self.signal_values.get(self.d_inputs[inst], 0) for inst in current_q}}"); print({inst: self.signal_values.get(self.d_inputs[inst], 0) for inst in current_q})
+        print(f"[Capture] Final Qs after {cycles} cycles: {current_q}")
         return current_q

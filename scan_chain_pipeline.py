@@ -35,7 +35,7 @@ class ScanChainSimulator:
         # Gather only real scan-FFs (exclude WBCs)
         q_map = {cell.name: cell.Q for cell in self.cells if cell.cell_type.lower() != 'wbc'}
         # Use the new evaluator.capture interface
-        final_q = self.evaluator.capture(q_map, cycles=2, se_map=se_map, si_map=si_map, reset_map=reset_map)
+        final_q = self.evaluator.capture(q_map, cycles=1, se_map=se_map, si_map=si_map, reset_map=reset_map)
         for cell in self.cells:
             if cell.name in final_q:
                 cell.Q = final_q[cell.name]
