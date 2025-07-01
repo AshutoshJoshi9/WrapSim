@@ -4,7 +4,6 @@ from extest_mode import ExtestModeDFT
 from logic_evaluator import LogicEvaluator
 from main import VerilogScanDFT
 import csv
-
 class ExtestCell:
     def __init__(self, name, cell_type, direction=None, signal=None):
         self.name = name
