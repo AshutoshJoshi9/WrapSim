@@ -235,5 +235,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - Open-source DFT/scan chain research community
 
 ---
-
-**Feel free to edit this README to match your specific usage, netlist names, or simulation flow!** 
