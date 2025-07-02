@@ -9,7 +9,7 @@ def compare_intest_vs_extest():
     """
     print("=== COMPARISON: INTEST vs EXTEST MODE ===\n")
     
-    # Initialize Intest Mode
+    #initialize Intest Mode
     print("1. INTEST MODE (Original)")
     intest_analyzer = VerilogScanDFT("./simple_counter.v")
     intest_analyzer.run()
@@ -21,7 +21,7 @@ def compare_intest_vs_extest():
     print(f"  - {len(intest_wbcs)} WBCs")
     print(f"  - {len(intest_ffs)} Flip-flops (SDFFs + DFFs)")
     
-    # Initialize Extest Mode
+    #initialize Extest Mode
     print("\n2. EXTEST MODE (New)")
     extest_analyzer = ExtestModeDFT("./simple_counter.v")
     extest_analyzer.run()
@@ -33,7 +33,7 @@ def compare_intest_vs_extest():
     print(f"  - {len(extest_wbcs)} WBCs")
     print(f"  - {len(extest_ffs)} Flip-flops (SDFFs + DFFs)")
     
-    # Summary comparison
+    #summary comparison
     print("\n=== SUMMARY COMPARISON ===")
     print(f"Intest Mode: {len(intest_analyzer.scan_chain)} total cells in scan chain")
     print(f"Extest Mode: {len(extest_analyzer.extest_scan_chain)} total cells in scan chain")

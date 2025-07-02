@@ -1,98 +1,3 @@
-# from pyverilog.vparser.parser import parse
-# from pyverilog.vparser.ast import *
-# from collections import defaultdict
-
-# class LogicEvaluator:
-#     def __init__(self, ast):
-#         self.ast = ast
-#         self.signal_values = {}               # signal name -> 0 or 1
-#         self.signal_drivers = {}              # signal name -> instance name or assignment
-#         self.gate_inputs = defaultdict(list)  # instance name -> input signal names
-#         self.gate_types = {}                  # instance name -> gate type (and, or, etc.)
-#         self.d_inputs = {}                    # flipflop instance -> D signal name
-
-#     def build_model(self):
-#         def visit(node):
-#             if isinstance(node, InstanceList):
-#                 cell_type = node.module.lower()
-#                 for inst in node.instances:
-#                     inst_name = inst.name
-#                     #ports = {p.portname: self.extract_name(p.arg) for p in inst.portlist}
-#                     ports = {}
-#                     for p in inst.portlist:
-#                         if hasattr(p, 'portname') and hasattr(p, 'arg'):
-#                             ports[p.portname] = self.extract_name(p.arg)
-#                         else:
-#                             print(f"Skipping malformed port: {p}")
-
-#                     if cell_type in ['sdff', 'dff']:
-#                         self.d_inputs[inst_name] = ports.get('D')
-#                     elif any(g in cell_type for g in ['and', 'or', 'nand', 'nor', 'xor', 'xnor']):
-#                         self.gate_types[inst_name] = cell_type
-#                         for pname, arg in ports.items():
-#                             if pname in ['A', 'B', 'A1', 'A2', 'B1', 'B2']:
-#                                 self.gate_inputs[inst_name].append(arg)
-#                             elif pname in ['Y', 'ZN', 'Z']:
-#                                 self.signal_drivers[arg] = inst_name
-
-#             elif isinstance(node, Assign):
-#                 lhs = self.extract_name(node.left)
-#                 rhs = self.extract_name(node.right)
-#                 self.signal_drivers[lhs] = rhs
-
-#             for c in node.children():
-#                 visit(c)
-
-#         visit(self.ast)
-
-#     def extract_name(self, node):
-#         if isinstance(node, Identifier):
-#             return node.name
-#         elif isinstance(node, Pointer):
-#             return f"{node.var.name}{node.ptr.value}"
-#         elif isinstance(node, IntConst):
-#             return node.value
-#         return str(node)
-
-#     def set_primary_inputs(self, values: dict):
-#         self.signal_values.update(values)
-
-#     def evaluate_gate(self, inst_name):
-#         gtype = self.gate_types[inst_name]
-#         inputs = [int(self.signal_values.get(sig, 0)) for sig in self.gate_inputs[inst_name]]
-
-#         if gtype == 'and': return int(all(inputs))
-#         if gtype == 'or': return int(any(inputs))
-#         if gtype == 'nand': return int(not all(inputs))
-#         if gtype == 'nor': return int(not any(inputs))
-#         if gtype == 'xor': return int(sum(inputs) % 2)
-#         if gtype == 'xnor': return int((sum(inputs) % 2) == 0)
-#         return 0
-
-#     def propagate(self):
-#         changed = True
-#         iteration = 0
-#         while changed:
-#             changed = False
-#             for signal, driver in self.signal_drivers.items():
-#                 if driver in self.gate_types:
-#                     new_val = self.evaluate_gate(driver)
-#                     if self.signal_values.get(signal) != new_val:
-#                         self.signal_values[signal] = new_val
-#                         changed = True
-#                 elif isinstance(driver, str):  # assign a = b
-#                     val = self.signal_values.get(driver, 0)
-#                     if self.signal_values.get(signal) != val:
-#                         self.signal_values[signal] = val
-#                         changed = True
-
-#     def evaluate_D_inputs(self) -> dict:
-#         results = {}
-#         for flop, d_signal in self.d_inputs.items():
-#             val = self.signal_values.get(d_signal, 0)
-#             results[flop] = val
-#         return results
-
 # logic_evaluator.py
 
 from pyverilog.vparser.ast import InstanceList, Assign, Identifier, Pointer, IntConst
@@ -321,7 +226,7 @@ class LogicEvaluator:
                     print(f"  Wire {drv} → {net}: {val}")
                 new_values[net] = val
             
-            # Now update all signal values at once (unit delay)
+            # Now update all signal values at once (unit gate delay too avoid raciing aand oscillations)
             for net, val in new_values.items():
                 old_val = self.signal_values.get(net, 0)
                 if old_val != val:

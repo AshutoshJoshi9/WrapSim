@@ -41,6 +41,3 @@ async def test_counter_functional(dut):
     sig_int = int(out_bus.value)
     captured = format(sig_int, f"0{N}b")
     dut._log.info(f"Captured signature: {captured}")
-
-
-###------------------- BYPASS MODE ------------------------------------

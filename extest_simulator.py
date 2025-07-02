@@ -19,7 +19,7 @@ class ExtestSimulator:
         self.history = []
         self.verbose = True
         
-        # Initialize WBC cells from the extest scan chain
+        #initialize WBC cells from the extest scan chain
         for cell in extest_analyzer.extest_scan_chain:
             wbc = ExtestCell(
                 name=cell['instance'],
@@ -29,7 +29,7 @@ class ExtestSimulator:
             )
             self.wbc_cells.append(wbc)
         
-        # Create logic evaluators for left and right cores
+        #create logic evaluators for left and right cores
         self.left_evaluator = None
         self.right_evaluator = None
         self.setup_core_evaluators()
@@ -40,11 +40,11 @@ class ExtestSimulator:
         """
         print("\n=== Setting up Core Logic Evaluators ===")
         
-        # Use the same netlist but with prefixed instance names
-        # We'll need to create modified netlists for left and right cores
-        # For now, we'll use the original netlist and handle the naming in simulation
+        #Use the same netlist but with prefixed instance names
+        #We'll need to create modified netlists for left and right cores
+        #For now, we'll use the original netlist and handle the naming in simulation
         
-        # Initialize evaluators (they'll be configured during capture)
+        #initialize evaluators (they'll be configured during capture)
         self.left_evaluator = LogicEvaluator(self.extest_analyzer.ast)
         self.right_evaluator = LogicEvaluator(self.extest_analyzer.ast)
         
@@ -57,11 +57,11 @@ class ExtestSimulator:
         if self.verbose:
             print(f"\n[SHIFT-IN] Loading test vector: {test_vector}")
         
-        # Ensure test vector length matches WBC count
+        #ensure test vector length matches WBC count
         if len(test_vector) != len(self.wbc_cells):
             raise ValueError(f"Test vector length {len(test_vector)} doesn't match WBC count {len(self.wbc_cells)}")
         
-        # Load test vector into WBCs
+        #load test vector into WBCs
         for i, bit in enumerate(test_vector):
             self.wbc_cells[i].value = int(bit)
             if self.verbose:
@@ -76,21 +76,21 @@ class ExtestSimulator:
         if self.verbose:
             print(f"\n[CAPTURE] Running {cycles} functional cycles")
         
-        # Separate input and output WBCs
+        #separate input and output WBCs
         input_wbcs = [wbc for wbc in self.wbc_cells if wbc.direction == 'input']
         output_wbcs = [wbc for wbc in self.wbc_cells if wbc.direction == 'output']
         
-        # Build evaluators for left and right cores
+        #build evaluators for left and right cores
         self.left_evaluator.build_model()
         self.right_evaluator.build_model()
         
-        # Initialize Q values for left and right cores
-        # We'll use the WBC values to set initial Q values
+        #Initialize Q values for left and right cores
+        #We'll use the WBC values to set initial Q values
         left_q = {}
         right_q = {}
         
-        # Map WBC values to flip-flops by bit position
-        # Based on simple_counter.v: count_reg_3->out[3], count_reg_2->out[2], count_reg_1->out[1], count_reg_0->out[0]
+        #Map WBC values to flip-flops by bit position
+        #Based on simple_counter.v: count_reg_3->out[3], count_reg_2->out[2], count_reg_1->out[1], count_reg_0->out[0]
         flop_to_bit = {
             'count_reg_3': 3,  # MSB
             'count_reg_2': 2,
@@ -98,7 +98,7 @@ class ExtestSimulator:
             'count_reg_0': 0   # LSB
         }
         
-        # Map input WBCs to left core flip-flops
+        #Map input WBCs to left core flip-flops
         for i, wbc in enumerate(input_wbcs):
             bit_pos = i  # WBC_in0 -> bit 0, WBC_in1 -> bit 1, etc.
             for flop_name, flop_bit in flop_to_bit.items():
@@ -107,7 +107,7 @@ class ExtestSimulator:
                     if self.verbose:
                         print(f"  Mapping WBC_in{i} (bit {bit_pos}) -> {flop_name} = {wbc.value}")
         
-        # Map output WBCs to right core flip-flops
+        #Map output WBCs to right core flip-flops
         for i, wbc in enumerate(output_wbcs):
             bit_pos = i  # WBC_out0 -> bit 0, WBC_out1 -> bit 1, etc.
             for flop_name, flop_bit in flop_to_bit.items():
@@ -116,15 +116,15 @@ class ExtestSimulator:
                     if self.verbose:
                         print(f"  Mapping WBC_out{i} (bit {bit_pos}) -> {flop_name} = {wbc.value}")
         
-        # Run capture simulation for left and right cores
-        # Set SE=0 for functional mode (not scan mode)
+        #Run capture simulation for left and right cores
+        #Set SE=0 for functional mode (not scan mode)
         se_map = {inst: 0 for inst in self.left_evaluator.sdff_cells}
         si_map = {inst: 0 for inst in self.left_evaluator.sdff_cells}
         
-        # Capture for left core
+        #Capture for left core
         self.left_final_q = self.left_evaluator.capture(left_q, cycles=cycles, se_map=se_map, si_map=si_map)
         
-        # Capture for right core
+        #capture for right core
         self.right_final_q = self.right_evaluator.capture(right_q, cycles=cycles, se_map=se_map, si_map=si_map)
         
         self.record_state("Capture Complete")
@@ -136,16 +136,16 @@ class ExtestSimulator:
         if self.verbose:
             print("\n[SHIFT-OUT] Loading core values into WBCs")
         
-        # Debug: Print the actual Q values from the evaluators
+        #debug: Print the actual Q values from the evaluators
         print(f"DEBUG: left_final_q = {self.left_final_q}")
         print(f"DEBUG: right_final_q = {self.right_final_q}")
         
-        # Separate input and output WBCs
+        #separate input and output WBCs
         input_wbcs = [wbc for wbc in self.wbc_cells if wbc.direction == 'input']
         output_wbcs = [wbc for wbc in self.wbc_cells if wbc.direction == 'output']
         
-        # Create a mapping from flip-flop instance name to bit position
-        # Based on simple_counter.v: count_reg_3->out[3], count_reg_2->out[2], count_reg_1->out[1], count_reg_0->out[0]
+        #Create a mapping from flip-flop instance name to bit position
+        #Based on simple_counter.v: count_reg_3->out[3], count_reg_2->out[2], count_reg_1->out[1], count_reg_0->out[0]
         flop_to_bit = {
             'count_reg_3': 3,  # MSB
             'count_reg_2': 2,
@@ -153,8 +153,8 @@ class ExtestSimulator:
             'count_reg_0': 0   # LSB
         }
         
-        # Load left core values into input WBCs
-        # Create a list to hold values in correct bit order
+        #Load left core values into input WBCs
+        #Create a list to hold values in correct bit order
         left_core_values = [0] * 4  # Initialize with zeros
         for flop_name, value in self.left_final_q.items():
             if flop_name in flop_to_bit:
@@ -170,7 +170,7 @@ class ExtestSimulator:
                 if self.verbose:
                     print(f"  {wbc.name} (input) = {wbc.value} (from left core bit {i})")
         
-        # Load right core values into output WBCs
+        #Load right core values into output WBCs
         # Create a list to hold values in correct bit order
         right_core_values = [0] * 4  # Initialize with zeros
         for flop_name, value in self.right_final_q.items():
@@ -180,14 +180,14 @@ class ExtestSimulator:
                 if self.verbose:
                     print(f"  Right core {flop_name} (bit {bit_pos}) = {value}")
         
-        # Map right core values to output WBCs
+        #map right core values to output WBCs
         for i, wbc in enumerate(output_wbcs):
             if i < 4:
                 wbc.value = right_core_values[i]
                 if self.verbose:
                     print(f"  {wbc.name} (output) = {wbc.value} (from right core bit {i})")
         
-        # Generate signature: concatenate all WBC values in testvector order
+        #generate signature: concatenate all WBC values in testvector order
         signature = ''.join(str(wbc.value) for wbc in input_wbcs + output_wbcs)
         
         if self.verbose:

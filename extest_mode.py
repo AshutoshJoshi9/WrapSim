@@ -21,7 +21,7 @@ class ExtestModeDFT:
         self.wbc_cells = []
         self.ast = None
         
-        # Extest-specific attributes
+        #Extest-specific attributes
         self.main_core = None
         self.left_core = None
         self.right_core = None
@@ -98,11 +98,11 @@ class ExtestModeDFT:
 
         visit(self.ast)
 
-        # Determine top-level module (defined but never instantiated)
+        #determine top-level module (defined but never instantiated)
         top_candidates = module_defs - instantiated_modules
         top_module = next(iter(top_candidates), None)
 
-        # Add Wrapper Boundary Cells for top-level module only (main core)
+        #add the Wrapper Boundary Cells for top-level module only (main core)
         excluded_inputs = {'clk', 'reset', 'en'}
         wbc_inputs = ['CFI', 'WINT', 'WEXT', 'WRCK', 'DFT_sdi']
         wbc_outputs = ['CFO', 'DFT_sdo']
@@ -141,7 +141,7 @@ class ExtestModeDFT:
         """
         print("\n=== Initializing Three Cores for Extest Mode ===")
         
-        # Main core (with WBCs) - same as intest mode
+        #main core (with WBCs) - same as intest mode
         self.main_core = {
             'name': 'main_core',
             'has_wbcs': True,
@@ -151,7 +151,7 @@ class ExtestModeDFT:
             'wbc_cells': self.wbc_cells.copy()
         }
         
-        # Left core (without WBCs) - just the internal logic
+        #left core (without WBCs) - just the internal logic
         self.left_core = {
             'name': 'left_core',
             'has_wbcs': False,
@@ -161,7 +161,7 @@ class ExtestModeDFT:
             'wbc_cells': []
         }
         
-        # Right core (without WBCs) - just the internal logic
+        #right core (without WBCs) - just the internal logic
         self.right_core = {
             'name': 'right_core',
             'has_wbcs': False,
@@ -183,7 +183,7 @@ class ExtestModeDFT:
         """
         print("\n=== Constructing Extest Scan Chain ===")
         
-        # Separate input and output WBCs for consistent ordering
+        #separate input and output WBCs for consistent ordering
         input_wbcs = sorted(
             [w for w in self.main_core['wbc_cells'] if w['direction'] == 'input'],
             key=lambda x: x['instance']
@@ -193,7 +193,7 @@ class ExtestModeDFT:
             key=lambda x: x['instance']
         )
         
-        # Extest scan chain: only WBCs, no internal flip-flops
+        #extest scan chain: only WBCs, no internal flip-flops
         wbc_chain = input_wbcs + output_wbcs
         
         self.extest_scan_chain = []
@@ -244,10 +244,10 @@ class ExtestModeDFT:
         """
         dot = Digraph(comment="Extest Mode Schematic")
         
-        # Set graph attributes for better layout
+        #Set graph attributes for better layout
         dot.attr(rankdir='LR')
         
-        # Create subgraphs for each core
+        #create subgraphs for each core
         with dot.subgraph(name='cluster_left') as left:
             left.attr(label='Left Core (No WBCs)', style='filled', color='lightgrey')
             left.attr(rank='same')
@@ -266,18 +266,18 @@ class ExtestModeDFT:
         with dot.subgraph(name='cluster_main') as main:
             main.attr(label='Main Core (with WBCs)', style='filled', color='lightblue')
             main.attr(rank='same')
-            # Add main core DFFs
+            #aadd main core DFFs
             for cell, name in self.main_core['flipflops']:
                 label = f"{cell}\n{name}"
                 main.node(name, label, shape="box", style="filled", color="lightblue")
-            # Add main core SDFFs
+            #add main core SDFFs
             for cell, name in self.main_core['scan_flops']:
                 label = f"{cell}\n{name}"
                 main.node(name, label, shape="box", style="filled", color="lightcyan")
-            # Add main core gates
+            #add main core gates
             for cell, name in self.main_core['gates']:
                 main.node(name, f"{cell}\n{name}", shape="ellipse", color="orange")
-            # Add WBCs to main core
+            #add WBCs to main core
             for wbc in self.main_core['wbc_cells']:
                 input_ports = ', '.join(wbc['inputs'])
                 output_ports = ', '.join(wbc['outputs'])
@@ -290,26 +290,26 @@ class ExtestModeDFT:
         with dot.subgraph(name='cluster_right') as right:
             right.attr(label='Right Core (No WBCs)', style='filled', color='lightgrey')
             right.attr(rank='same')
-            # Add right core DFFs
+            #add right core DFFs
             for cell, name in self.right_core['flipflops']:
                 label = f"{cell}\n{name}"
                 right.node(name, label, shape="box", style="filled", color="lightgrey")
-            # Add right core SDFFs
+            #add right core SDFFs
             for cell, name in self.right_core['scan_flops']:
                 label = f"{cell}\n{name}"
                 right.node(name, label, shape="box", style="filled", color="lightgreen")
-            # Add right core gates
+            #add right core gates
             for cell, name in self.right_core['gates']:
                 right.node(name, f"{cell}\n{name}", shape="ellipse", color="orange")
         
-        # Draw extest scan chain path (WBCs only)
+        #draw extest scan chain path (WBCs only)
         for idx in range(len(self.extest_scan_chain) - 1):
             from_cell = self.extest_scan_chain[idx]
             to_cell = self.extest_scan_chain[idx + 1]
             dot.edge(from_cell['instance'], to_cell['instance'], 
                     label=f"SO->SI", color="red", penwidth="2")
         
-        # Add scan chain input/output labels
+        #add scan chain input/output labels
         if self.extest_scan_chain:
             dot.node("extest_scan_in", "Extest\nScan In", shape="diamond", color="red")
             dot.node("extest_scan_out", "Extest\nScan Out", shape="diamond", color="red")
@@ -318,7 +318,7 @@ class ExtestModeDFT:
             dot.edge(self.extest_scan_chain[-1]['instance'], "extest_scan_out", 
                     color="red", penwidth="2")
         
-        # Create specific connections as requested:
+        #creating specific connections as for convenience:
         # WBC_in[0] -> left_count_reg[0]
         # WBC_in[1] -> left_count_reg[1] 
         # WBC_in[2] -> left_count_reg[2]
@@ -328,29 +328,29 @@ class ExtestModeDFT:
         # WBC_out[2] -> right_count_reg[2]
         # WBC_out[3] -> right_count_reg[3]
         
-        # Get input WBCs sorted by signal name to ensure correct order
+        #get input WBCs sorted by signal name to ensure correct order
         input_wbcs = sorted(
             [wbc for wbc in self.main_core['wbc_cells'] if wbc['direction'] == 'input'],
             key=lambda x: x['signal']
         )
         
-        # Get output WBCs sorted by signal name to ensure correct order
+        #get output WBCs sorted by signal name to ensure correct order
         output_wbcs = sorted(
             [wbc for wbc in self.main_core['wbc_cells'] if wbc['direction'] == 'output'],
             key=lambda x: x['signal']
         )
         
-        # Get left core flip-flops sorted by name to ensure correct order
+        #get left core flip-flops sorted by name to ensure correct order
         left_ff_names = []
         for _, name in sorted(self.left_core['flipflops'] + self.left_core['scan_flops'], key=lambda x: x[1]):
             left_ff_names.append(name)
         
-        # Get right core flip-flops sorted by name to ensure correct order
+        #get right core flip-flops sorted by name to ensure correct order
         right_ff_names = []
         for _, name in sorted(self.right_core['flipflops'] + self.right_core['scan_flops'], key=lambda x: x[1]):
             right_ff_names.append(name)
         
-        # Create specific input WBC to left core connections
+        #create specific input WBC to left core connections
         for i in range(min(len(input_wbcs), len(left_ff_names))):
             wbc = input_wbcs[i]
             left_ff = left_ff_names[i]
@@ -358,7 +358,7 @@ class ExtestModeDFT:
                     color="blue", style="dashed", 
                     label=f"WBC_in[{i}]->left_count_reg[{i}]")
         
-        # Create specific output WBC to right core connections
+        #create specific output WBC to right core connections
         for i in range(min(len(output_wbcs), len(right_ff_names))):
             wbc = output_wbcs[i]
             right_ff = right_ff_names[i]

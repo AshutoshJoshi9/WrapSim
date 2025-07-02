@@ -38,3 +38,5 @@ coverage/
 node_modules/
 bower_components/
 wave.vcd
+
+test.ipynb
